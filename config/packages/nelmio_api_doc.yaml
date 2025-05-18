@@ -1,0 +1,13 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Ticket sorter
+            description: Helping people to sort their tickets
+            version: 1.0.0
+        areas: # to filter documented areas
+        path_patterns:
+            - ^/(?!doc).* # Accepts routes under /api except /api/doc
+    media_types: ['application/json']
+    areas:
+        default:
+            path_patterns: [ '^/sort', '^/explain' ]
