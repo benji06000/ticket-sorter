@@ -7,58 +7,58 @@ use App\Interface\TicketInterface;
 use App\Model\Bus;
 use App\Model\Flight;
 use App\Model\Train;
+use DateTimeImmutable;
+use Exception;
+use OpenApi\Attributes as OA;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
-use OpenApi\Attributes as OA;
-use DateTimeImmutable;
-use Exception;
+use ValueError;
 
 class TicketDto
 {
     public function __construct(
-
         #[Assert\Length(max: 255)]
-        #[OA\Property(example: "12A")]
+        #[OA\Property(example: '12A')]
         public ?string $seat,
 
         #[Assert\Length(max: 6)]
-        #[OA\Property(example: "flight")]
+        #[OA\Property(example: 'flight')]
         public string $ticketType,
 
         #[Assert\Length(max: 255)]
-        #[OA\Property(example: "JFK Airport")]
+        #[OA\Property(example: 'JFK Airport')]
         public string $departureName,
 
         #[Assert\Length(max: 255)]
-        #[OA\Property(example: "Heathrow")]
+        #[OA\Property(example: 'Heathrow')]
         public string $arrivalName,
 
         #[Assert\DateTime]
-        #[OA\Property(example: "Y-m-d h:i:s")]
+        #[OA\Property(example: 'Y-m-d h:i:s')]
         public string $departureDate,
 
         #[Assert\DateTime]
-        #[OA\Property(example: "Y-m-d h:i:s")]
+        #[OA\Property(example: 'Y-m-d h:i:s')]
         public string $arrivalDate,
 
-        //-- Bus+
+        // -- Bus+
         #[Assert\Length(max: 255)]
-        #[OA\Property(example: "BUS-42")]
+        #[OA\Property(example: 'BUS-42')]
         public ?string $busNumber,
 
-        //-- Train
+        // -- Train
         #[Assert\Length(max: 255)]
-        #[OA\Property(example: "Wagon 7")]
+        #[OA\Property(example: 'Wagon 7')]
         public ?string $trainWagon,
 
-        //-- Flight information
+        // -- Flight information
         #[Assert\Length(max: 255)]
-        #[OA\Property(example: "AF1984")]
+        #[OA\Property(example: 'AF1984')]
         public ?string $flightNumber,
 
         #[Assert\Length(max: 255)]
-        #[OA\Property(example: "G12")]
+        #[OA\Property(example: 'G12')]
         public ?string $gate,
 
         #[Assert\Positive]
@@ -68,8 +68,7 @@ class TicketDto
         #[Assert\Type(type: 'bool')]
         #[OA\Property(example: false)]
         public ?bool $connectedFlight,
-    )
-    {
+    ) {
     }
 
     #[Ignore]
@@ -85,36 +84,33 @@ class TicketDto
     public function toClass(): TicketInterface
     {
         return match ($this->getTicketTypeEnum()) {
-            TicketType::FLIGHT => (
-                (new Flight())
-                    ->setSeat($this->seat)
-                    ->setFlightNumber($this->flightNumber)
-                    ->setGate($this->gate)
-                    ->setBaggageDrop($this->baggageDrop)
-                    ->setConnectedFlight($this->connectedFlight)
-                    ->setDepartureName($this->departureName)
-                    ->setArrivalName($this->arrivalName)
-                    ->setDepartureDate(new DateTimeImmutable($this->departureDate))
-                    ->setArrivalDate(new DateTimeImmutable($this->arrivalDate))
-            ),
-            TicketType::TRAIN => (
-            (new Train())
+            TicketType::FLIGHT => (new Flight())
+                ->setSeat($this->seat)
+                ->setFlightNumber($this->flightNumber)
+                ->setGate($this->gate)
+                ->setBaggageDrop($this->baggageDrop)
+                ->setConnectedFlight($this->connectedFlight)
+                ->setDepartureName($this->departureName)
+                ->setArrivalName($this->arrivalName)
+                ->setDepartureDate(new DateTimeImmutable($this->departureDate))
+                ->setArrivalDate(new DateTimeImmutable($this->arrivalDate))
+            ,
+            TicketType::TRAIN => (new Train())
                 ->setSeat($this->seat)
                 ->setTrainWagon($this->trainWagon)
                 ->setDepartureName($this->departureName)
                 ->setArrivalName($this->arrivalName)
                 ->setDepartureDate(new DateTimeImmutable($this->departureDate))
                 ->setArrivalDate(new DateTimeImmutable($this->arrivalDate))
-            ),
-            TicketType::BUS => (
-                (new Bus())
-                    ->setSeat($this->seat)
-                    ->setBusNumber($this->busNumber)
-                    ->setDepartureName($this->departureName)
-                    ->setArrivalName($this->arrivalName)
-                    ->setDepartureDate(new DateTimeImmutable($this->departureDate))
-                    ->setArrivalDate(new DateTimeImmutable($this->arrivalDate))
-            ),
+            ,
+            TicketType::BUS => (new Bus())
+                ->setSeat($this->seat)
+                ->setBusNumber($this->busNumber)
+                ->setDepartureName($this->departureName)
+                ->setArrivalName($this->arrivalName)
+                ->setDepartureDate(new DateTimeImmutable($this->departureDate))
+                ->setArrivalDate(new DateTimeImmutable($this->arrivalDate))
+            ,
         };
     }
 
@@ -123,7 +119,7 @@ class TicketDto
     {
         try {
             $ticketType = $this->getTicketTypeEnum();
-        } catch (\ValueError $e) {
+        } catch (ValueError $e) {
             $context->buildViolation(sprintf(
                 'Invalid ticket type %s, must be one of "%s"',
                 $this->ticketType,
@@ -133,10 +129,11 @@ class TicketDto
             ))
                 ->atPath('ticketType')
                 ->addViolation();
+
             return;
         }
 
-        //-- Check if date are valid
+        // -- Check if date are valid
         if ($this->arrivalDate < $this->departureDate) {
             $context->buildViolation('Arrival date must be after departure date')
                 ->atPath('arrivalDate')
@@ -174,5 +171,4 @@ class TicketDto
                 break;
         }
     }
-
 }
