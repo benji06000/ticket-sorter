@@ -24,4 +24,10 @@ services:
     # please note that last definitions always *replace* previous ones
     App\Controller\:
         resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
         public: true
+
+when@test:
+    services:
+        App\Service\SorterService:
+            public: true
